@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+{% block content %}
+<h2><i class="fas fa-cog"></i> Admin Panel</h2>
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3>{{ users_count }}</h3>
+                <p>Users</p>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-primary">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3>{{ stations_count }}</h3>
+                <p>Stations</p>
+                <a href="{{ url_for('admin.stations') }}" class="btn btn-sm btn-primary">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3>{{ parameters_count }}</h3>
+                <p>Parameters</p>
+                <a href="{{ url_for('admin.parameters') }}" class="btn btn-sm btn-primary">Manage</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3>{{ quality_issues_count }}</h3>
+                <p>Quality Issues</p>
+                <a href="{{ url_for('admin.quality') }}" class="btn btn-sm btn-warning">View</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3><i class="fas fa-thermometer-half"></i></h3>
+                <p>Extreme Records</p>
+                <a href="{{ url_for('admin.extreme_records') }}" class="btn btn-sm btn-primary">Manage</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,269 @@
+================================================================================
+             INDIAN METEOROLOGICAL DEPARTMENT - RMC CHENNAI
+              WEATHER DATA MANAGEMENT SYSTEM (WDMS) - USER MANUAL
+================================================================================
+Version: 2.0 (Updated Release)
+Organization: Regional Meteorological Centre (RMC), IMD Chennai
+Target Audience: Meteorologists, Officers, Data Entry Operators, & System Admins
+================================================================================
+
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. SYSTEM STARTUP GUIDE
+   1.1. Starting the System on the Main Computer
+   1.2. Accessing the Website on the Main Computer
+   1.3. Accessing from Another Computer on the Same WiFi
+   1.4. Proper System Shutdown
+2. USER CREDENTIALS & ACCESS ROLES
+   2.1. Default Login Accounts
+   2.2. Role Capabilities & Permissions
+3. NAVIGATING THE WEBSITE & MODULES
+   3.1. Dashboard & System Status
+   3.2. Station Overview & Searching
+   3.3. Daily Observations & Data Entry
+   3.4. 10-Year Extreme Weather Management
+   3.5. Excel Archive Browser
+4. GENERATING REPORTS & EXPORTING DATA
+   4.1. PDF Summary Reports
+   4.2. Excel Spreadsheets (.xlsx)
+   4.3. Word Documents (.docx)
+5. AUTOMATED RE-IMPORT TOOLS & SCRIPTS
+   5.1. Word Document Extreme Archive Import
+   5.2. Excel Daily Archive Import
+6. TROUBLESHOOTING & FAQS
+================================================================================
+
+
+################################################################################
+                           1. SYSTEM STARTUP GUIDE
+################################################################################
+
+1.1. STARTING THE SYSTEM ON THE MAIN COMPUTER
+--------------------------------------------------------------------------------
+The software is designed for 1-click startup without needing any technical or 
+command-line knowledge:
+1. Navigate to your project folder on the desktop:
+   Folder Path: C:\Users\Acer\OneDrive\Desktop\imd (or your designated folder)
+2. Double-click the file named:
+   Start_IMD_System.bat
+3. What Happens Next:
+   - A black console window titled "IMD System Server" will open.
+   - You will see startup text indicating:
+     "Server running on: http://0.0.0.0:5000"
+   - Your default web browser will automatically open to the login page!
+
+IMPORTANT NOTE ON CONSOLE WINDOW:
+Do NOT close the black console window while you are using the software! That 
+window is the server powering the website. If you close it, the website will 
+stop working. You can minimize the window while working.
+
+
+1.2. ACCESSING THE WEBSITE ON THE MAIN COMPUTER
+--------------------------------------------------------------------------------
+If your browser does not open automatically, simply open any web browser 
+(Google Chrome, Microsoft Edge, Mozilla Firefox) and type either of these URLs 
+into the address bar:
+- http://localhost:5000
+- http://127.0.0.1:5000
+
+
+1.3. ACCESSING FROM ANOTHER COMPUTER ON THE SAME WIFI
+--------------------------------------------------------------------------------
+The application is pre-configured with network broadcasting (0.0.0.0:5000), 
+meaning multiple officers and computers connected to the same office WiFi or 
+LAN can access the database simultaneously without installing software on their pcs!
+
+Step A: Find the Main Computer's Local IP Address:
+1. On the main computer running "Start_IMD_System.bat", open Command Prompt.
+2. Type: ipconfig and press Enter.
+3. Look for "IPv4 Address" under your Wireless LAN or Ethernet Adapter.
+   Example IP: 192.168.1.50 or 10.0.0.15
+
+Step B: Open Browser on the Second Company Computer:
+1. Ensure the second computer is connected to the exact same WiFi network.
+2. Open Google Chrome or Microsoft Edge.
+3. Type the main computer's IP address followed by :5000 into the address bar:
+   Example: http://192.168.1.50:5000
+4. You will see the login page and can log in with your credentials!
+
+Firewall Troubleshooting (If second computer says "Site can't be reached"):
+If Windows Firewall blocks the connection, open Command Prompt as Administrator 
+on the MAIN computer and execute this single command to allow network sharing:
+netsh advfirewall firewall add rule name="Allow IMD Port 5000" dir=in action=allow protocol=TCP localport=5000
+
+
+1.4. PROPER SYSTEM SHUTDOWN
+--------------------------------------------------------------------------------
+To shut down the server at the end of the workday:
+1. Click on the black "IMD System Server" console window.
+2. Press CTRL + C on your keyboard.
+3. When prompted "Terminate batch job (Y/N)?", type Y and press Enter, or 
+   simply close the black console window by clicking the 'X' in the top right.
+
+
+################################################################################
+                       2. USER CREDENTIALS & ACCESS ROLES
+################################################################################
+
+2.1. DEFAULT LOGIN ACCOUNTS
+--------------------------------------------------------------------------------
+The system is equipped with role-based security. Use the following default 
+credentials to log into the website:
+
++------------------+------------------+------------------+---------------------+
+| Role             | Username         | Password         | Access Level        |
++------------------+------------------+------------------+---------------------+
+| Administrator    | admin            | admin123         | Full System Control |
+| Met Officer      | officer          | officer123       | Approval & Reports  |
+| Data Entry       | operator         | operator123      | Data Entry Only     |
+| Read-Only        | viewer           | viewer123        | Search & View Only  |
++------------------+------------------+------------------+---------------------+
+* Note: Administrators can create new user accounts and change passwords via the 
+  "Admin" panel in the left sidebar.
+
+
+2.2. ROLE CAPABILITIES & PERMISSIONS
+--------------------------------------------------------------------------------
+1. Administrator (ADMIN):
+   - Full read, write, edit, and delete permissions across all modules.
+   - Manage system users, assign roles, and view audit activity logs.
+   - Run database schema migrations and system maintenance tools.
+2. Meteorological Officer (MET_OFFICER):
+   - Verify and approve daily weather observations submitted by operators.
+   - Edit existing records and update 10-year extreme weather records.
+   - Generate official printable PDF reports and export spreadsheet archives.
+3. Data Entry Operator (DATA_ENTRY):
+   - Input daily weather observations (temperatures, rainfall, humidity).
+   - View station lists and search historical observations.
+   - Cannot delete verified records or alter system configurations.
+4. Read-Only User (READ_ONLY):
+   - Search stations, view weather charts, and inspect 10-year extreme tables.
+   - Download reports for research and reference without edit capabilities.
+
+
+################################################################################
+                      3. NAVIGATING THE WEBSITE & MODULES
+################################################################################
+
+3.1. DASHBOARD & SYSTEM STATUS
+--------------------------------------------------------------------------------
+Upon logging in, you are greeted by the main Dashboard. Key indicators include:
+- Total Active Stations: Number of reporting meteorological stations in Tamil Nadu.
+- Daily Observations Count: Total historical and recent records logged.
+- Extreme Weather Threshold Alerts: Instant notification of broken temperature 
+  or rainfall records.
+- Recent Activity Feed: Live updates of who entered or verified recent data.
+
+
+3.2. STATION OVERVIEW & SEARCHING
+--------------------------------------------------------------------------------
+Navigate to "Stations" in the left sidebar to browse weather stations.
+- Searching Records: Use the search bar at the top of the Stations or Daily 
+  Observations page to instantly filter by:
+  * Station Name (e.g., "Nungambakkam", "Meenambakkam", "Madurai")
+  * Index Number (e.g., "43279", "43278")
+  * District / Basin (e.g., "Chennai", "Coimbatore")
+- Station Details View: Clicking any station opens a comprehensive dashboard 
+  displaying its historical daily logs, graphical charts, and its dedicated 
+  10-Year Extreme Weather summary table.
+
+
+3.3. DAILY OBSERVATIONS & DATA ENTRY
+--------------------------------------------------------------------------------
+To log new weather observations:
+1. Click "Data Entry" or "Daily Observations" in the sidebar.
+2. Select the Station from the dropdown and pick the Observation Date.
+3. Enter standard meteorological parameters:
+   - Max Temperature (°C)
+   - Min Temperature (°C)
+   - 24-Hour Rainfall (mm)
+   - Relative Humidity (%)
+   - Wind Speed & Direction
+4. Automatic Data Validation & Quality Checks:
+   - The system automatically validates inputs against physical limits (e.g., 
+     alerting if Max Temp exceeds 50°C or is lower than Min Temp).
+   - If an entered value breaks a 10-Year Extreme Weather record for that station 
+     and month, the system highlights the observation for verification!
+
+
+3.4. 10-YEAR EXTREME WEATHER MANAGEMENT
+--------------------------------------------------------------------------------
+The "Extreme Weather" module tracks historical record highs and lows for each 
+station across all 12 calendar months (January to December).
+- Parameters Tracked:
+  * Highest Maximum Temperature (°C) and date of occurrence.
+  * Lowest Minimum Temperature (°C) and date of occurrence.
+  * Heaviest 24-Hour Rainfall (mm) and date of occurrence.
+- Updating Records: Authorized officers can manually update or edit extreme values 
+  whenever new historical benchmarks are established.
+
+
+3.5. EXCEL ARCHIVE BROWSER
+--------------------------------------------------------------------------------
+The "Archives" section allows staff to browse, view, and download raw historical 
+Excel sheets stored in the server's "excel_archive" and "daily_archive" directories 
+without needing to search through desktop folders manually.
+
+
+################################################################################
+                   4. GENERATING REPORTS & EXPORTING DATA
+################################################################################
+
+The system supports 1-click exporting for official presentations and records:
+1. PDF Summary Reports:
+   - Go to "Reports" -> Select Station & Date Range -> Click "Generate PDF".
+   - Produces a cleanly formatted, printable meteorological summary report with 
+     official RMC Chennai headers.
+2. Excel Spreadsheets (.xlsx):
+   - On any search results or station data page, click "Export to Excel".
+   - Downloads a structured .xlsx spreadsheet compatible with Microsoft Excel.
+3. Word Documents (.docx):
+   - Export 10-Year Extreme tables directly into official Word Document format 
+     matching standard IMD publication layouts.
+
+
+################################################################################
+                   5. AUTOMATED RE-IMPORT TOOLS & SCRIPTS
+################################################################################
+
+If you ever need to reload bulk historical records from your original archive 
+files, the system provides automated command-line scripts:
+
+5.1. WORD DOCUMENT EXTREME ARCHIVE IMPORT
+--------------------------------------------------------------------------------
+If you have 10-year extreme Word (.doc / .docx) files stored in your folder:
+1. Open Command Prompt inside your project directory.
+2. Run command:
+   venv\Scripts\python.exe run_full_reimport.py
+3. The script will scan all Word documents, parse tables, and update the database 
+   with all historical extremes automatically!
+
+5.2. EXCEL DAILY ARCHIVE IMPORT
+--------------------------------------------------------------------------------
+To import daily observations from Excel files:
+1. Open Command Prompt inside your project directory.
+2. Run command:
+   venv\Scripts\python.exe add_daily_params.py
+
+
+################################################################################
+                         6. TROUBLESHOOTING & FAQS
+################################################################################
+
+Q1: What if double-clicking Start_IMD_System.bat says "Port 5000 is already in use"?
+A1: Another instance of the server or another app is using port 5000.
+    Fix: Open Task Manager, look for running "Python" processes, and end them. 
+    Then double-click Start_IMD_System.bat again.
+
+Q2: What if the database shows "rmc_chennai_database does not exist"?
+A2: Open config.py and ensure line 22 points to your existing database name:
+    'postgresql://postgres:adminimd123@localhost:5432/rmc_chennai'
+
+Q3: Can multiple users enter data at the exact same time from different PCs?
+A3: Yes! Because the system uses PostgreSQL / relational database locking, 
+    multiple officers can safely log observations and view reports simultaneously 
+    over WiFi without any data corruption or file conflicts.
+
+================================================================================
+  For further technical assistance, consult USER_AND_DEVELOPER_MANUAL.txt
+================================================================================

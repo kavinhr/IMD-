@@ -1,0 +1,335 @@
+================================================================================
+          WEATHER DATA MANAGEMENT SYSTEM (WDMS) - RMC CHENNAI
+           COMPLETE USER MANUAL & DEVELOPER EXTENSION GUIDE
+================================================================================
+Version: 1.0
+Organization: Regional Meteorological Centre (RMC), IMD Chennai
+Target Audience: End-Users (Meteorologists, Officers, Admins) & Developers
+================================================================================
+
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+PART I: END-USER MANUAL
+  1. System Overview & Key Features
+  2. Getting Started & Logging In
+  3. User Roles & Access Levels
+  4. Step-by-Step Module Guides
+     4.1. Dashboard & Statistics
+     4.2. Daily Data Entry (Single & Batch)
+     4.3. Search & Data Filtering
+     4.4. Data Visualization & Charts
+     4.5. Reports & Data Exporting
+     4.6. Excel Archive Browser
+     4.7. Administration & User Management
+  5. Data Quality & Outlier Detection
+  6. Troubleshooting & FAQs
+
+PART II: DEVELOPER & ARCHITECTURE GUIDE
+  7. Technical Stack & Architecture
+  8. Directory Structure & Module Reference
+  9. Database Schema Breakdown (5 Schemas)
+  10. Local Development & Debug Setup
+  11. How to Extend & Improve the System
+      11.1. Adding a New Weather Parameter
+      11.2. Creating a New Web Page / Route
+      11.3. Modifying Database Models & Schema
+  12. Backend Services & Calculation Scripts
+  13. Security, Performance & Maintenance Best Practices
+================================================================================
+
+
+################################################################################
+                             PART I: END-USER MANUAL
+################################################################################
+
+1. SYSTEM OVERVIEW & KEY FEATURES
+--------------------------------------------------------------------------------
+The Weather Data Management System (WDMS) is a centralized web application 
+designed for the Regional Meteorological Centre (RMC), Chennai. It replaces 
+scattered spreadsheets and manual logging with a secure, automated, and 
+searchable relational database platform.
+
+Key Features:
+* Automated Data Validation: Instantly checks entered data for extreme outliers.
+* Interactive Visualization: Generate real-time temperature, rainfall, and 
+  humidity trends with interactive charts.
+* Historical Archive Browser: Access and view legacy Excel archives directly in
+  your browser without downloading.
+* Comprehensive Audit Logging: Every login, data entry, edit, and export is 
+  logged for accountability.
+
+
+2. GETTING STARTED & LOGGING IN
+--------------------------------------------------------------------------------
+1. Start the System: Double-click the `Start_IMD_System.bat` icon on your 
+   Desktop or project root. A terminal window will appear showing that the web 
+   server is running.
+2. Open Your Web Browser: Launch Chrome, Firefox, or Edge and navigate to:
+   http://localhost:5000 (or the local network IP provided by your IT admin).
+3. Log In: Enter your assigned Username and Password.
+   (Default System Admin credentials for setup: admin / admin123)
+4. Security Note: After 5 consecutive failed login attempts, accounts are locked
+   temporarily for 30 minutes to prevent unauthorized guessing.
+
+
+3. USER ROLES & ACCESS LEVELS
+--------------------------------------------------------------------------------
+The system uses Role-Based Access Control (RBAC). Your screen options depend on
+your assigned role:
+
+1. Admin (System Administrator):
+   - Full access to all modules.
+   - Can create, edit, lock, or delete user accounts.
+   - Can view system logs, audit trails, and perform database migrations.
+
+2. Met Officer (Meteorological Officer):
+   - Can view dashboards, search data, generate reports, and export CSVs.
+   - Can verify, approve, or correct data entered by operators.
+   - Can access data quality anomaly logs.
+
+3. Data Entry (Operator):
+   - Can input new weather observations (single entry or daily batch files).
+   - Can view and search records.
+   - Cannot delete historical records or access system administration.
+
+4. Read-Only (Guest/Analyst):
+   - Can only view dashboards, search historical data, and view visualizations.
+   - Cannot add, edit, or export sensitive system settings.
+
+
+4. STEP-BY-STEP MODULE GUIDES
+--------------------------------------------------------------------------------
+
+4.1. DASHBOARD & STATISTICS
+Upon login, you are greeted by the Main Dashboard. This provides:
+* Summary Cards: Total stations tracked, total observations recorded, and recent 
+  data entry counts.
+* Quick Links: Direct navigation buttons to Data Entry, Search, and Reports.
+* System Status: Real-time indicators of database connectivity and latest upload 
+  timestamps.
+
+4.2. DAILY DATA ENTRY (SINGLE & BATCH)
+To record new meteorological observations:
+* Single Observation Entry:
+  1. Click "Data Entry" -> "New Observation" in the left sidebar.
+  2. Select the Station (e.g., Meenambakkam, Nungambakkam) and Date/Time.
+  3. Enter values for Maximum Temp (°C), Minimum Temp (°C), 24h Rainfall (mm), 
+     Relative Humidity (%), Wind Speed (km/h), etc.
+  4. Click "Submit Observation". The system will immediately validate the values.
+* Batch Daily Files Upload:
+  1. Click "Data Entry" -> "Upload Daily Files".
+  2. Select your standardized daily Excel (.xls / .xlsx) or CSV file.
+  3. Click "Upload & Process". The system parses rows, calculates derived 
+     metrics automatically, and reports how many records were imported successfully.
+
+4.3. SEARCH & DATA FILTERING
+To find specific historical records:
+1. Navigate to "Search" in the sidebar.
+2. Apply filters as needed:
+   - Station Name
+   - Date Range (Start Date to End Date)
+   - Parameter thresholds (e.g., Rainfall > 50 mm for heavy rain events)
+3. Click "Search".
+4. Results appear in a responsive table with sorting and pagination. You can 
+   click any column header to sort ascending/descending.
+
+4.4. DATA VISUALIZATION & CHARTS
+To analyze climate trends visually:
+1. Click "Visualize" in the navigation bar.
+2. Choose the Station and Date Range.
+3. Select the Parameter to plot (e.g., Max vs Min Temperature, Monthly Rainfall).
+4. Click "Generate Chart". An interactive chart will render where you can hover
+   over data points to see exact values, zoom in, or download the chart as an image.
+
+4.5. REPORTS & DATA EXPORTING
+To generate official summaries for distribution or research:
+1. Go to "Reports".
+2. Select Report Type: Daily Summary, Monthly Climatology, or Extreme Weather.
+3. Choose the target Station and period.
+4. Exporting: Click "Export to CSV" or "Export to Excel" to download a clean,
+   formatted file ready for analysis in external software.
+
+4.6. EXCEL ARCHIVE BROWSER
+The RMC Chennai repository contains historical Excel sheets.
+1. Click "Excel Archive" in the sidebar.
+2. Browse folders organized by year and month.
+3. Click any Excel spreadsheet name to view its tabular data directly inside 
+   your browser without needing Microsoft Excel installed.
+
+4.7. ADMINISTRATION & USER MANAGEMENT (Admin Only)
+1. User Management: Go to "Admin" -> "Users" to add new staff members, reset
+   passwords, or assign access roles.
+2. Audit Logs: Go to "Admin" -> "Audit Trail" to see a complete timestamped list
+   of who logged in, who entered data, and what modifications were made.
+
+
+5. DATA QUALITY & OUTLIER DETECTION
+--------------------------------------------------------------------------------
+To maintain meteorological data integrity, WDMS runs automatic Quality Control:
+* IQR (Interquartile Range) & Z-Score Checking: When data is entered, it is 
+  checked against historical norms for that station and season.
+* Outlier Flagging: If a value is suspicious (e.g., Maximum Temp entered as 
+  58°C instead of 38°C due to a typo), the system flags the record in the 
+  "Data Quality Issues" table.
+* Met Officer Verification: Officers can review flagged records under "Quality
+  Control" and mark them as "Verified Correct" (for genuine extreme weather) or 
+  "Corrected" (if fixing a typographical error).
+
+
+6. TROUBLESHOOTING & FAQS
+--------------------------------------------------------------------------------
+Q: Why won't the system start when I click `Start_IMD_System.bat`?
+A: Ensure PostgreSQL is running in background and Python is added to Windows PATH.
+   Open Command Prompt, type `python --version` and `psql -V` to verify installation.
+
+Q: What should I do if I forget my password?
+A: Contact the System Administrator. Admins can reset passwords via the Admin 
+   Panel or by running `python init_db.py` in terminal if superadmin recovery is needed.
+
+Q: The browser says "500 Internal Server Error". What happened?
+A: Check the application logs located in the `/logs` folder (e.g., `logs/app.log`).
+   This usually indicates a database connection timeout or a missing table column.
+
+
+================================================================================
+                    PART II: DEVELOPER & ARCHITECTURE GUIDE
+================================================================================
+
+7. TECHNICAL STACK & ARCHITECTURE
+--------------------------------------------------------------------------------
+WDMS is built using robust, modern Python and Web standards:
+* Backend Framework: Python 3.9+, Flask 2.x (Blueprints architectural pattern)
+* Database ORM: SQLAlchemy & Flask-SQLAlchemy
+* Database Engine: PostgreSQL 14+ (Using psycopg2 binary adapter)
+* Frontend: HTML5, Jinja2 Templating, Bootstrap 5 CSS, Chart.js for visualization
+* Security: Werkzeug (password hashing), Flask-Login (session management), 
+  Flask-WTF (CSRF protection)
+* Data Processing: Pandas & OpenPyXL (for daily Excel archiving and re-importing)
+
+
+8. DIRECTORY STRUCTURE & MODULE REFERENCE
+--------------------------------------------------------------------------------
+imd/
+├── app/
+│   ├── __init__.py          # Flask app factory, database & login initialization
+│   ├── models/              # SQLAlchemy database models (5 schemas)
+│   ├── routes/              # Flask Blueprints (controllers for web pages)
+│   │   ├── auth.py          # Login, logout, session security
+│   │   ├── dashboard.py     # Homepage & statistics aggregation
+│   │   ├── data_entry.py    # Manual observation forms
+│   │   ├── daily_files.py   # Batch daily spreadsheet upload & processing
+│   │   ├── search.py        # Query builder and filtering
+│   │   ├── reports.py       # Climatological report generation & CSV export
+│   │   ├── visualize.py     # Chart.js JSON data endpoints
+│   │   ├── admin.py         # User management & system monitoring
+│   │   └── excel_archive.py # Web-based Excel file explorer
+│   ├── services/            # Core business logic & calculation engines
+│   │   └── auto_calculate.py # Derived meteorological calculations & QC checking
+│   ├── static/              # CSS, JavaScript, and IMD Logo images
+│   └── templates/           # Jinja2 HTML UI templates
+├── backups/                 # Database backup SQL dumps
+├── daily_archive/           # Standardized daily meteorological upload storage
+├── excel_archive/           # Raw legacy repository folders
+├── exports/                 # Generated CSV reports storage
+├── logs/                    # Rotating application error and audit logs
+├── config.py                # Environment configurations (Dev, Prod, Test)
+├── init_db.py               # Database creation & initial seed script
+├── run.py                   # WSGI application entry point
+├── requirements.txt         # Python package dependencies
+└── Start_IMD_System.bat     # Windows 1-click startup script
+
+
+9. DATABASE SCHEMA BREAKDOWN (5 SCHEMAS)
+--------------------------------------------------------------------------------
+To maintain clean separation of concerns, the PostgreSQL database is partitioned
+into 5 distinct schemas:
+
+1. `core` Schema (Meteorological Data):
+   - `stations`: Metadata for weather stations (Station ID, Name, Lat/Long, Elevation).
+   - `parameters`: Weather parameter definitions (Temp, Rain, Humidity, Units).
+   - `observations`: The main data table storing timestamped weather recordings.
+
+2. `security` Schema (Users & Access):
+   - `users`: User accounts, hashed passwords, role bindings, lockout status.
+   - `roles`: Role definitions (Admin, Met Officer, Data Entry, Read-Only).
+   - `user_sessions`: Active JWT/Session tokens and expiration tracking.
+
+3. `quality` Schema (Data Verification):
+   - `quality_issues`: Log of flagged outliers, Z-score deviations, and review status.
+
+4. `archive` Schema (File Tracking):
+   - `excel_files`: Index of archived sheets, file paths, and import sync timestamps.
+   - `migration_history`: Tracking log for data re-imports and database upgrades.
+
+5. `audit` Schema (System Accountability):
+   - `audit_logs`: Immutable record of user actions (INSERT, UPDATE, DELETE, LOGIN).
+
+
+10. LOCAL DEVELOPMENT & DEBUG SETUP
+--------------------------------------------------------------------------------
+To work on code improvements locally:
+1. Open terminal and activate Python virtual environment:
+   `venv\Scripts\activate`
+2. Set Flask to Development Mode (enables auto-reload and interactive debugger):
+   In Windows CMD: `set FLASK_ENV=development` & `set FLASK_DEBUG=1`
+   In PowerShell: `$env:FLASK_ENV="development"`; `$env:FLASK_DEBUG="1"`
+3. Run the application directly:
+   `python run.py`
+4. SQL Debugging: In `config.py`, set `SQLALCHEMY_ECHO = True` under 
+   `DevelopmentConfig` to print raw SQL queries executed by SQLAlchemy to the terminal.
+
+
+11. HOW TO EXTEND & IMPROVE THE SYSTEM
+--------------------------------------------------------------------------------
+
+11.1. ADDING A NEW WEATHER PARAMETER (e.g., Soil Moisture or UV Index)
+1. Database Insertion: Connect to PostgreSQL and add the new parameter row in `core.parameters`:
+   `INSERT INTO core.parameters (name, code, unit, description) VALUES ('Soil Moisture', 'SM', '%', 'Volumetric soil moisture');`
+2. Update Form Templates: In `app/templates/data_entry/new.html`, add an input field:
+   `<input type="number" step="0.1" name="soil_moisture" class="form-control" placeholder="Soil Moisture (%)">`
+3. Process in Backend Route: In `app/routes/data_entry.py`, extract the form field and save it to the `observations` table model.
+
+11.2. CREATING A NEW WEB PAGE / ROUTE
+1. Create a Blueprint Route: In `app/routes/`, create or edit a blueprint file:
+   ```python
+   @bp.route('/custom-analytics')
+   @login_required
+   def custom_analytics():
+       # Your custom query logic here
+       return render_template('analytics/custom.html', title="Custom Analytics")
+   ```
+2. Register in App Factory: If you created a new `.py` file, register its blueprint in `app/__init__.py`:
+   `from app.routes.custom import bp as custom_bp`
+   `app.register_blueprint(custom_bp, url_prefix='/custom')`
+3. Create UI Template: Add `custom.html` in `app/templates/analytics/` extending `base.html`:
+   ```jinja2
+   {% extends "base.html" %}
+   {% block content %}
+     <h2>Custom Analytics Dashboard</h2>
+   {% endblock %}
+   ```
+
+11.3. MODIFYING DATABASE MODELS & SCHEMA
+1. Edit ORM Models: Modify Python classes inside `app/models/` (e.g., adding a column to `Station` model in `app/models/station.py`).
+2. Database Migration: For simple additions, write an ALTER TABLE script in a new Python migration utility or execute via pgAdmin:
+   `ALTER TABLE core.stations ADD COLUMN installation_date DATE;`
+3. Test Integrity: Run `python init_db.py` on a test database to ensure model definitions match PostgreSQL table schemas.
+
+
+12. BACKEND SERVICES & CALCULATION SCRIPTS
+--------------------------------------------------------------------------------
+* `app/services/auto_calculate.py`: Contains automated weather math. When extending system functions, add custom derived calculations here (e.g., Heat Index, Dew Point approximation, Wind Chill, or cumulative monthly rainfall).
+* `add_daily_params.py` & `run_full_reimport.py`: Standalone CLI utilities used for bulk processing legacy Excel files from `excel_archive/`. When updating spreadsheet parsing logic, modify these scripts using Pandas/OpenPyXL.
+
+
+13. SECURITY, PERFORMANCE & MAINTENANCE BEST PRACTICES
+--------------------------------------------------------------------------------
+* ORM Queries: Always use SQLAlchemy ORM (`Observation.query.filter_by(...)`) instead of raw SQL concatenation to prevent SQL Injection attacks.
+* CSRF Tokens: Ensure all HTML forms include `<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>` or use Flask-WTF forms.
+* Pagination: Never fetch all observations without pagination (`.paginate(page=page, per_page=50)`). Meteorological databases grow to millions of rows; unbounded queries will cause memory crashes.
+* Logging: Use `current_app.logger.info()` or `.error()` instead of `print()` statements so messages are captured cleanly in rotating log files under `/logs`.
+* Regular Backups: Encourage administrators to schedule automated backups or use `pg_dump` weekly to safeguard climatological records.
+
+================================================================================
+  END OF MANUAL - INDIAN METEOROLOGICAL DEPARTMENT, RMC CHENNAI WDMS PROJECT
+================================================================================

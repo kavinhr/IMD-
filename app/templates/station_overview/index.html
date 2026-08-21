@@ -1,0 +1,667 @@
+{% extends "base.html" %}
+
+{% block title %}Station Overview{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-bar"></i> Station Overview</h2>
+</div>
+
+<!-- Controls Section -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body bg-light">
+        <div class="row mb-3">
+            <div class="col-12 text-center">
+                <div class="btn-group" role="group" aria-label="Data Type Toggle">
+                    <input type="radio" class="btn-check" name="dataType" id="typeMonthly" autocomplete="off" value="monthly" checked>
+                    <label class="btn btn-outline-primary fw-bold px-4" for="typeMonthly">Monthly Overview</label>
+                  
+                    <input type="radio" class="btn-check" name="dataType" id="typeDaily" autocomplete="off" value="daily">
+                    <label class="btn btn-outline-primary fw-bold px-4" for="typeDaily">Daily Observations</label>
+                </div>
+            </div>
+        </div>
+        <form id="overviewForm" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Select Station <span class="text-danger">*</span></label>
+                <select class="form-select border-primary" id="stationSelect" required>
+                    <option value="">-- Choose a Station --</option>
+                    {% for station in stations %}
+                    <option value="{{ station.station_id }}">{{ station.station_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Select Parameter</label>
+                <select class="form-select border-primary" id="parameterSelect">
+                    <option value="">-- All Parameters --</option>
+                    <!-- Populated by JS based on type -->
+                </select>
+            </div>
+            <div class="col-md-4" id="monthlyTimeControls">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Start Year</label>
+                        <input type="number" class="form-control border-primary" id="topStartYear" placeholder="Earliest" min="1900" max="2100">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold">End Year</label>
+                        <input type="number" class="form-control border-primary" id="topEndYear" placeholder="Latest" min="1900" max="2100">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" id="dailyTimeControls" style="display: none;">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Year</label>
+                        <input type="number" class="form-control border-primary" id="dailyYear" placeholder="Any" min="1900" max="2100">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Month</label>
+                        <select class="form-select border-primary" id="dailyMonth">
+                            <option value="">Any</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    <i class="fas fa-search"></i> Generate
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="resultsContainer" style="display: none;">
+    <!-- All-Time Records Section -->
+    <div class="card shadow-sm mb-4 border-warning" id="allTimeRecordsContainer">
+        <div class="card-header bg-warning text-dark fw-bold">
+            <i class="fas fa-trophy"></i> All-Time Records
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 text-center align-middle" id="recordsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start ps-4">Parameter</th>
+                            <th class="text-danger"><i class="fas fa-arrow-up"></i> Highest</th>
+                            <th class="text-danger">Date (MM/YYYY)</th>
+                            <th class="text-primary"><i class="fas fa-arrow-down"></i> Lowest</th>
+                            <th class="text-primary">Date (MM/YYYY)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graph Section -->
+    <div class="card shadow-sm mb-4 border-info">
+        <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-chart-line"></i> Visual Graph</span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3 bg-light p-2 rounded align-items-center">
+                <div class="col-md-3" id="graphParamContainer">
+                    <label class="form-label small fw-bold text-muted">Graph Parameter</label>
+                    <select class="form-select form-select-sm border-info" id="graphParamSelect">
+                        <!-- Populated by JS based on type -->
+                    </select>
+                </div>
+                <div class="col-md-2" id="graphMonthlyStart">
+                    <label class="form-label small fw-bold text-muted">Start Year</label>
+                    <input type="number" class="form-control form-control-sm" id="startYear" placeholder="Earliest" min="1900" max="2100">
+                </div>
+                <div class="col-md-2" id="graphMonthlyEnd">
+                    <label class="form-label small fw-bold text-muted">End Year</label>
+                    <input type="number" class="form-control form-control-sm" id="endYear" placeholder="Latest" min="1900" max="2100">
+                </div>
+                <div class="col-md-4" id="graphDailyYearContainer" style="display: none;">
+                    <label class="form-label small fw-bold text-muted">Year</label>
+                    <input type="number" class="form-control form-control-sm" id="graphDailyYear" placeholder="Any" min="1900" max="2100">
+                </div>
+                <div class="col-md-3" id="graphMonthSelectContainer">
+                    <label class="form-label small fw-bold text-muted" title="Hold Control (Ctrl) key to select multiple specific months">
+                        Month(s) <small class="text-info fw-normal">(Ctrl+Click)</small>
+                    </label>
+                    <select class="form-select form-select-sm border-info" id="graphMonthSelect" multiple size="3" style="max-height: 75px;">
+                        <option value="" selected>All Months</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-sm btn-outline-info w-100 py-2" type="button" id="updateGraphBtn">
+                        <i class="fas fa-sync-alt"></i> Update Chart
+                    </button>
+                </div>
+            </div>
+            
+            <div style="height: 400px; position: relative;">
+                <canvas id="overviewChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Section -->
+    <div class="card shadow-sm mb-4 border-success" id="dataTableSection" style="display: none;">
+        <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-table"></i> <span id="dataTableTitle">Data Table</span></span>
+            <div id="monthlyGridControls" style="display: none;">
+                <input type="number" class="form-control form-control-sm d-inline-block w-auto" id="monthlyGridYear" placeholder="Year" min="1900" max="2100" value="{{ now.year }}">
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Monthly Table (Specific Parameter) -->
+            <div class="table-responsive" id="monthlyTableContainer" style="display: none;">
+                <table class="table table-bordered table-striped table-hover text-center table-sm w-100" id="monthlyDataTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Year</th>
+                            <th>Jan</th>
+                            <th>Feb</th>
+                            <th>Mar</th>
+                            <th>Apr</th>
+                            <th>May</th>
+                            <th>Jun</th>
+                            <th>Jul</th>
+                            <th>Aug</th>
+                            <th>Sep</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dec</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Daily Table (Specific Parameter) -->
+            <div class="table-responsive" id="dailyTableContainer" style="display: none;">
+                <table class="table table-bordered table-striped table-hover text-center table-sm w-100" id="dailyDataTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 100px;">Period</th>
+                            {% for d in range(1, 32) %}
+                            <th style="min-width: 40px;">{{ d }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Monthly Grid Table (All Parameters) -->
+            <div class="table-responsive" id="monthlyGridTableContainer" style="display: none;">
+                <table class="table table-bordered table-striped table-hover text-center table-sm w-100" id="monthlyGridTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start" style="min-width: 250px;">Parameter</th>
+                            <th>Jan</th>
+                            <th>Feb</th>
+                            <th>Mar</th>
+                            <th>Apr</th>
+                            <th>May</th>
+                            <th>Jun</th>
+                            <th>Jul</th>
+                            <th>Aug</th>
+                            <th>Sep</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dec</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Daily Grid Table (All Parameters) -->
+            <div class="table-responsive" id="dailyGridTableContainer" style="display: none;">
+                <table class="table table-bordered table-striped table-hover text-center table-sm w-100" id="dailyGridTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start" style="min-width: 250px;">Parameter</th>
+                            {% for d in range(1, 32) %}
+                            <th style="min-width: 40px;">{{ d }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let overviewChart = null;
+let monthlyTable = null;
+let dailyTable = null;
+let monthlyGridTable = null;
+let dailyGridTable = null;
+
+const monthlyParams = [
+    {% for p in monthly_params %}
+    { id: {{ p.parameter_id }}, name: "{{ p.parameter_name }}" },
+    {% endfor %}
+];
+const dailyParams = [
+    {% for p in daily_params %}
+    { id: {{ p.parameter_id }}, name: "{{ p.parameter_name }}" },
+    {% endfor %}
+];
+
+function updateParameterDropdowns() {
+    const isDaily = document.getElementById('typeDaily').checked;
+    const params = isDaily ? dailyParams : monthlyParams;
+    
+    const pSelect = document.getElementById('parameterSelect');
+    const gSelect = document.getElementById('graphParamSelect');
+    
+    pSelect.innerHTML = '<option value="">-- All Parameters --</option>';
+    gSelect.innerHTML = '';
+    
+    params.forEach(p => {
+        pSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        gSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+    });
+    
+    if (isDaily) {
+        document.getElementById('monthlyTimeControls').style.display = 'none';
+        document.getElementById('dailyTimeControls').style.display = 'block';
+        
+        document.getElementById('graphMonthlyStart').style.display = 'none';
+        document.getElementById('graphMonthlyEnd').style.display = 'none';
+        document.getElementById('graphDailyYearContainer').style.display = 'block';
+    } else {
+        document.getElementById('monthlyTimeControls').style.display = 'block';
+        document.getElementById('dailyTimeControls').style.display = 'none';
+        
+        document.getElementById('graphMonthlyStart').style.display = 'block';
+        document.getElementById('graphMonthlyEnd').style.display = 'block';
+        document.getElementById('graphDailyYearContainer').style.display = 'none';
+    }
+}
+
+document.querySelectorAll('input[name="dataType"]').forEach(radio => {
+    radio.addEventListener('change', updateParameterDropdowns);
+});
+
+// Initialize DataTable
+$(document).ready(function() {
+    updateParameterDropdowns();
+    
+    monthlyTable = $('#monthlyDataTable').DataTable({
+        "order": [[0, "desc"]],
+        "pageLength": 10,
+        "lengthMenu": [10, 25, 50, 100],
+        "columns": [
+            { "data": "period", "className": "fw-bold bg-light" },
+            { "data": "v1" }, { "data": "v2" }, { "data": "v3" }, { "data": "v4" },
+            { "data": "v5" }, { "data": "v6" }, { "data": "v7" }, { "data": "v8" },
+            { "data": "v9" }, { "data": "v10" }, { "data": "v11" }, { "data": "v12" }
+        ]
+    });
+    
+    const dailyColumns = [{ "data": "period", "className": "fw-bold bg-light text-nowrap" }];
+    for (let i = 1; i <= 31; i++) {
+        dailyColumns.push({ "data": "v" + i });
+    }
+    
+    dailyTable = $('#dailyDataTable').DataTable({
+        "order": [[0, "desc"]],
+        "pageLength": 10,
+        "lengthMenu": [10, 25, 50],
+        "scrollX": true,
+        "columns": dailyColumns
+    });
+    
+    monthlyGridTable = $('#monthlyGridTable').DataTable({
+        "paging": false,
+        "ordering": false,
+        "info": false,
+        "searching": false,
+        "columns": [
+            { "data": "parameter_name", "className": "fw-bold bg-light text-nowrap" },
+            { "data": "v1" }, { "data": "v2" }, { "data": "v3" }, { "data": "v4" },
+            { "data": "v5" }, { "data": "v6" }, { "data": "v7" }, { "data": "v8" },
+            { "data": "v9" }, { "data": "v10" }, { "data": "v11" }, { "data": "v12" }
+        ]
+    });
+    
+    const dailyGridColumns = [{ "data": "parameter_name", "className": "fw-bold bg-light text-nowrap" }];
+    for (let i = 1; i <= 31; i++) {
+        dailyGridColumns.push({ "data": "v" + i });
+    }
+    
+    dailyGridTable = $('#dailyGridTable').DataTable({
+        "paging": false,
+        "ordering": false,
+        "info": false,
+        "searching": false,
+        "scrollX": true,
+        "columns": dailyGridColumns
+    });
+});
+
+document.getElementById('overviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const stationId = document.getElementById('stationSelect').value;
+    const parameterId = document.getElementById('parameterSelect').value;
+    const isDaily = document.getElementById('typeDaily').checked;
+    
+    if (!stationId) return;
+    
+    document.getElementById('resultsContainer').style.display = 'block';
+    
+    // Toggle Graph Parameter Dropdown
+    const graphParamContainer = document.getElementById('graphParamContainer');
+    if (parameterId) {
+        graphParamContainer.style.display = 'none';
+        document.getElementById('graphParamSelect').value = parameterId;
+    } else {
+        graphParamContainer.style.display = 'block';
+    }
+    
+    // Toggle Data Table Section
+    const dataTableSection = document.getElementById('dataTableSection');
+    dataTableSection.style.display = 'block';
+    
+    document.getElementById('monthlyTableContainer').style.display = 'none';
+    document.getElementById('dailyTableContainer').style.display = 'none';
+    document.getElementById('monthlyGridTableContainer').style.display = 'none';
+    document.getElementById('dailyGridTableContainer').style.display = 'none';
+    document.getElementById('monthlyGridControls').style.display = 'none';
+
+    if (parameterId) {
+        document.getElementById('dataTableTitle').innerText = 'Specific Parameter Data';
+        if (isDaily) {
+            document.getElementById('dailyTableContainer').style.display = 'block';
+        } else {
+            document.getElementById('monthlyTableContainer').style.display = 'block';
+        }
+        loadDataTable(stationId, parameterId, isDaily);
+    } else {
+        document.getElementById('dataTableTitle').innerText = 'All Parameters Grid Data';
+        if (isDaily) {
+            document.getElementById('dailyGridTableContainer').style.display = 'block';
+            loadDailyGridData(stationId);
+        } else {
+            document.getElementById('monthlyGridTableContainer').style.display = 'block';
+            document.getElementById('monthlyGridControls').style.display = 'block';
+            loadMonthlyGridData(stationId);
+        }
+    }
+    
+    const allTimeRecordsContainer = document.getElementById('allTimeRecordsContainer');
+    if (isDaily) {
+        allTimeRecordsContainer.style.display = 'none';
+    } else {
+        allTimeRecordsContainer.style.display = 'block';
+        loadRecords(stationId, parameterId, isDaily);
+    }
+    
+    updateChart();
+});
+
+document.getElementById('monthlyGridYear').addEventListener('change', function() {
+    const stationId = document.getElementById('stationSelect').value;
+    if (stationId) loadMonthlyGridData(stationId);
+});
+
+document.getElementById('updateGraphBtn').addEventListener('click', updateChart);
+
+let isAllSelected = true;
+const gMonthSelect = document.getElementById('graphMonthSelect');
+if (gMonthSelect) {
+    gMonthSelect.addEventListener('change', function() {
+        const opts = Array.from(this.options);
+        const allOpt = opts[0];
+        const numberedSelected = opts.slice(1).filter(o => o.selected);
+        
+        if (allOpt.selected && !isAllSelected) {
+            numberedSelected.forEach(o => o.selected = false);
+            isAllSelected = true;
+        } else if (numberedSelected.length > 0) {
+            allOpt.selected = false;
+            isAllSelected = false;
+        } else {
+            allOpt.selected = true;
+            isAllSelected = true;
+        }
+    });
+}
+
+function loadRecords(stationId, parameterId, isDaily) {
+    const tbody = document.getElementById('recordsBody');
+    tbody.innerHTML = '<tr><td colspan="5"><i class="fas fa-spinner fa-spin"></i> Loading records...</td></tr>';
+    
+    const dataType = isDaily ? 'daily' : 'monthly';
+    let url = `{{ url_for('station_overview.get_records') }}?station_id=${stationId}&data_type=${dataType}`;
+    if (parameterId) url += `&parameter_id=${parameterId}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            tbody.innerHTML = '';
+            if (data.records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-muted">No records found.</td></tr>';
+                return;
+            }
+            
+            data.records.forEach(rec => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-start ps-4 fw-bold text-secondary">${rec.parameter_name}</td>
+                    <td class="fw-bold">${rec.highest_value !== null ? rec.highest_value : '-'}</td>
+                    <td class="small text-muted">${rec.highest_date}</td>
+                    <td class="fw-bold">${rec.lowest_value !== null ? rec.lowest_value : '-'}</td>
+                    <td class="small text-muted">${rec.lowest_date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-danger">Failed to load records.</td></tr>';
+        });
+}
+
+function updateChart() {
+    const stationId = document.getElementById('stationSelect').value;
+    const parameterId = document.getElementById('graphParamSelect').value;
+    const isDaily = document.getElementById('typeDaily').checked;
+    
+    if (!stationId || !parameterId) return;
+    
+    const dataType = isDaily ? 'daily' : 'monthly';
+    let url = `{{ url_for('station_overview.chart_data') }}?station_id=${stationId}&parameter_id=${parameterId}&data_type=${dataType}`;
+    
+    if (isDaily) {
+        const year = document.getElementById('graphDailyYear').value;
+        if (year) url += `&daily_year=${year}`;
+    } else {
+        const yearFrom = document.getElementById('startYear').value;
+        const yearTo = document.getElementById('endYear').value;
+        if (yearFrom) url += `&year_from=${yearFrom}`;
+        if (yearTo) url += `&year_to=${yearTo}`;
+    }
+    
+    const monthSelect = document.getElementById('graphMonthSelect');
+    if (monthSelect) {
+        const selectedMonths = Array.from(monthSelect.selectedOptions)
+                                    .map(opt => opt.value)
+                                    .filter(val => val !== "");
+        selectedMonths.forEach(m => {
+            url += `&month=${m}`;
+        });
+    }
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            renderChart(data.labels, data.values, document.getElementById('graphParamSelect').options[document.getElementById('graphParamSelect').selectedIndex].text, isDaily);
+        })
+        .catch(err => console.error(err));
+}
+
+function renderChart(labels, values, labelName, isDaily) {
+    const ctx = document.getElementById('overviewChart').getContext('2d');
+    
+    if (overviewChart) {
+        overviewChart.destroy();
+    }
+    
+    overviewChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: labelName,
+                data: values,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: isDaily ? 'Timeline (MM-DD)' : 'Timeline (YYYY-MM)'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Value'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function loadDataTable(stationId, parameterId, isDaily) {
+    if (!stationId || !parameterId) return;
+    
+    const dataType = isDaily ? 'daily' : 'monthly';
+    let url = `{{ url_for('station_overview.table_data') }}?station_id=${stationId}&parameter_id=${parameterId}&data_type=${dataType}`;
+    
+    if (isDaily) {
+        const year = document.getElementById('dailyYear').value;
+        const month = document.getElementById('dailyMonth').value;
+        if (year) url += `&daily_year=${year}`;
+        if (month) url += `&daily_month=${month}`;
+    }
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(res => {
+            const dt = isDaily ? dailyTable : monthlyTable;
+            dt.clear();
+            if (res.data && res.data.length > 0) {
+                dt.rows.add(res.data);
+            }
+            dt.draw();
+        })
+        .catch(err => console.error(err));
+}
+
+function loadDailyGridData(stationId) {
+    let year = document.getElementById('dailyYear').value;
+    if (!year) year = new Date().getFullYear();
+    const month = document.getElementById('dailyMonth').value || 1; // Default to Jan if none
+    
+    // Update the graph controls to match so the graph reflects the same period
+    document.getElementById('graphDailyYear').value = year;
+    const gMS = document.getElementById('graphMonthSelect');
+    if (gMS) {
+        Array.from(gMS.options).forEach(opt => {
+            opt.selected = (opt.value == month);
+        });
+        isAllSelected = false;
+    }
+    
+    const url = `{{ url_for('station_overview.daily_grid') }}?station_id=${stationId}&daily_year=${year}&daily_month=${month}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(res => {
+            dailyGridTable.clear();
+            if (res.data && res.data.length > 0) {
+                dailyGridTable.rows.add(res.data);
+            }
+            dailyGridTable.draw();
+        })
+        .catch(err => console.error(err));
+}
+
+function loadMonthlyGridData(stationId) {
+    let year = document.getElementById('monthlyGridYear').value;
+    if (!year) {
+        year = document.getElementById('topStartYear').value;
+        if (year) document.getElementById('monthlyGridYear').value = year;
+        else year = new Date().getFullYear();
+    }
+    
+    const url = `{{ url_for('station_overview.monthly_grid') }}?station_id=${stationId}&year=${year}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(res => {
+            monthlyGridTable.clear();
+            if (res.data && res.data.length > 0) {
+                monthlyGridTable.rows.add(res.data);
+            }
+            monthlyGridTable.draw();
+        })
+        .catch(err => console.error(err));
+}
+</script>
+{% endblock %}

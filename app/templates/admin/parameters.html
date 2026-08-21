@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Manage Parameters{% endblock %}
+{% block content %}
+<h2><i class="fas fa-thermometer-half"></i> Manage Parameters</h2>
+<div class="card mt-4">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>Code</th><th>Name</th><th>Unit</th><th>Category</th><th>Active</th></tr>
+            </thead>
+            <tbody>
+                {% for param in parameters %}
+                <tr>
+                    <td>{{ param.parameter_code }}</td>
+                    <td>{{ param.parameter_name }}</td>
+                    <td>{{ param.unit }}</td>
+                    <td>{{ param.category }}</td>
+                    <td>{% if param.is_active %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

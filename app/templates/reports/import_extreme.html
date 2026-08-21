@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Import Extreme Weather{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Import Extreme Weather Events</h2>
+    <a href="{{ url_for('extreme_weather.index') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Report
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-file-word"></i> Upload Word Document</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select .doc or .docx Files</label>
+                        <input class="form-control form-control-lg" type="file" name="file" accept=".doc,.docx" multiple required>
+                        <div class="form-text mt-2 text-primary">
+                            <i class="fas fa-info-circle"></i> Supports both legacy Word 97-2003 (.doc) and modern Word (.docx) formats.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload"></i> Process and Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4 border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Format Requirements</h5>
+            </div>
+            <div class="card-body bg-light">
+                <p>The parser expects the standard export format:</p>
+                <ul class="mb-0 text-muted">
+                    <li class="mb-2">A heading identifying the station (e.g. <code>1. CHENNAI (N)</code>).</li>
+                    <li class="mb-2">A subheading identifying the month (e.g. <code>EXTREME WEATHER EVENTS IN THE MONTH OF APRIL</code>).</li>
+                    <li class="mb-2">A table containing historical data, with the first two rows acting as headers.</li>
+                    <li class="mb-2">Values and Dates formatted as <code>Value (Date)</code> (e.g. <code>39.2 (13)</code>).</li>
+                    <li class="mb-2">An <strong>ALL TIME RECORD</strong> row containing deep historical records, formatted as <code>Value (Date, Year)</code> (e.g. <code>42.8 (27, 1908)</code>).</li>
+                </ul>
+                <div class="alert alert-success mt-3 mb-0">
+                    <i class="fas fa-shield-alt"></i> This tool extracts data into a dedicated shadow table. It <strong>will not alter</strong> your master observation database.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-database"></i> Uploaded Extreme Data</h5>
+            </div>
+            <div class="card-body">
+                {% if uploaded_months %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Month</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for month in uploaded_months|sort %}
+                            <tr>
+                                <td class="align-middle">
+                                    {% for name, num in months_map.items() %}
+                                        {% if num == month %}{{ name }}{% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('import_extreme.delete_month', month=month) }}" onsubmit="return confirm('Are you sure you want to delete all imported extreme data for this month?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No extreme data has been imported yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

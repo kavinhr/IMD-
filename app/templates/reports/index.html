@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-alt"></i> Reports & Export</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-download"></i> Export Data</h5>
+            </div>
+            <div class="card-body">
+                <form id="exportForm" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted">Station <small>(Hold Ctrl for multiple)</small></label>
+                            <select class="form-select" name="station_id" multiple size="5">
+                                <option value="" selected>All Stations</option>
+                                {% for station in stations %}
+                                <option value="{{ station.station_id }}">{{ station.station_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted">Parameter <small>(Hold Ctrl for multiple)</small></label>
+                            <select class="form-select" name="parameter_id" multiple size="5">
+                                <option value="" selected>All Parameters</option>
+                                {% for param in parameters %}
+                                <option value="{{ param.parameter_id }}">{{ param.parameter_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted">From Year</label>
+                            <input type="number" class="form-control" name="start_year" min="1900" max="2100" placeholder="e.g. 1980">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted">To Year</label>
+                            <input type="number" class="form-control" name="end_year" min="1900" max="2100" placeholder="e.g. 2024">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <button type="submit" class="btn btn-outline-info px-4 py-2" onclick="document.getElementById('exportForm').action='{{ url_for('reports.export_csv') }}'">
+                            <i class="fas fa-file-csv"></i> Export to CSV
+                        </button>
+                        <button type="submit" class="btn btn-primary px-4 py-2" onclick="document.getElementById('exportForm').action='{{ url_for('reports.export_excel') }}'">
+                            <i class="fas fa-file-excel"></i> Export to Excel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

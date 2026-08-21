@@ -1,0 +1,506 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+
+/* ================================================================
+   DESIGN SYSTEM — Standard Government Theme
+   Clean, high-contrast, accessible, solid surfaces
+   ================================================================ */
+
+:root {
+    /* Indian Government Palette (NIC standards) */
+    --primary:       #004B87; /* Official Blue */
+    --secondary:     #0D6EFD; /* Standard Blue */
+    --accent:        #FF9933; /* Saffron */
+    --accent-alt:    #138808; /* Green */
+    --success:       #198754;
+    --warning:       #DC3545;
+
+    /* Surfaces */
+    --bg:            #F4F6F9;
+    --card-bg:       #FFFFFF;
+    
+    /* Borders */
+    --border:        #DEE2E6;
+    --border-dark:   #ADB5BD;
+
+    /* Text */
+    --text-dark:     #212529;
+    --text-body:     #333333;
+    --text-muted:    #6C757D;
+    --text-light:    #FFFFFF;
+    
+    /* Shadows */
+    --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md:  0 2px 4px rgba(0,0,0,0.08);
+
+    /* Transitions */
+    --ease: ease-in-out;
+    --duration: 0.2s;
+}
+
+/* ================================================================
+   GLOBAL RESET
+   ================================================================ */
+* { box-sizing: border-box; }
+
+body {
+    background: var(--bg);
+    color: var(--text-body);
+    font-family: 'Open Sans', Arial, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', Arial, sans-serif;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+a { 
+    color: var(--primary);
+    transition: color var(--duration) var(--ease); 
+}
+a:hover {
+    color: var(--secondary);
+}
+
+/* ================================================================
+   REMOVED GLASSMORPHISM UTILITIES -> Solid fallback
+   ================================================================ */
+.glass-panel, .glass-light {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ================================================================
+   NAVBAR & HEADER
+   ================================================================ */
+.navbar {
+    background: var(--primary) !important;
+    border-bottom: 3px solid var(--accent) !important;
+    padding: 0.5rem 1rem;
+    z-index: 1030;
+    box-shadow: var(--shadow-md);
+}
+.navbar-brand {
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #FFFFFF !important;
+}
+.navbar-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    background: #FFF;
+    border-radius: 50%;
+    padding: 2px;
+}
+.login-logo {
+    height: 96px;
+    width: auto;
+    object-fit: contain;
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 500;
+    transition: color var(--duration) var(--ease);
+}
+.nav-link:hover {
+    color: #FFFFFF !important;
+    text-decoration: underline;
+}
+
+.navbar .dropdown-menu {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+    border-radius: 2px;
+}
+.navbar .dropdown-item {
+    color: var(--text-body);
+}
+.navbar .dropdown-item:hover {
+    background: var(--bg);
+    color: var(--primary);
+}
+
+/* ================================================================
+   SIDEBAR
+   ================================================================ */
+.sidebar {
+    background: #FFFFFF !important;
+    border-right: 1px solid var(--border);
+    padding-top: 1.5rem;
+    min-height: calc(100vh - 56px);
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar .nav-link {
+    color: var(--text-body) !important;
+    border-radius: 4px;
+    margin: 2px 10px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+}
+.sidebar .nav-link:hover {
+    background: var(--bg);
+    color: var(--primary) !important;
+    border-left: 3px solid var(--secondary);
+}
+.sidebar .nav-link.active {
+    background: #EBF3FA;
+    color: var(--primary) !important;
+    border-left: 3px solid var(--primary);
+    font-weight: 600;
+}
+.sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+    margin-right: 8px;
+    color: var(--primary);
+}
+.sidebar hr {
+    border-color: var(--border);
+    margin: 10px 16px;
+}
+
+/* ================================================================
+   STATION EXPLORER — SIDEBAR ACCORDION
+   ================================================================ */
+.sidebar-explorer .sidebar-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.sidebar-chevron {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+.sidebar-toggle[aria-expanded="true"] .sidebar-chevron {
+    transform: rotate(180deg);
+}
+
+.sidebar-sub-menu {
+    padding-left: 0;
+    background: #FAFAFA;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin: 5px 0;
+}
+.sidebar-sub-menu .nav-link {
+    font-size: 0.85rem !important;
+    padding: 8px 12px 8px 30px !important;
+    margin: 0 !important;
+    border-left: none;
+    border-bottom: 1px solid #EEE;
+}
+.sidebar-sub-menu .station-link .fa-map-marker-alt {
+    color: var(--accent);
+}
+.sidebar-sub-menu .station-link.active {
+    background: #EBF3FA !important;
+    border-left: 3px solid var(--accent);
+}
+
+/* ================================================================
+   CARDS
+   ================================================================ */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-body);
+    border-radius: 4px;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow-sm);
+}
+.card-header {
+    background: #F8F9FA;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--primary);
+    padding: 0.75rem 1.25rem;
+}
+.stat-card {
+    border-top: 3px solid var(--primary);
+    text-align: center;
+}
+.stat-card h2 {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 2.2rem;
+    margin: 10px 0;
+}
+.stat-card h6 {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.stat-card small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* ================================================================
+   TABLES
+   ================================================================ */
+.table {
+    color: var(--text-body);
+    border-collapse: collapse;
+    width: 100%;
+}
+.table th,
+.table td {
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.8rem;
+    vertical-align: middle;
+}
+.table thead th {
+    background: #F1F3F5;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-dark);
+}
+.table-hover tbody tr:hover {
+    background: #F8F9FA !important;
+}
+
+/* Explorer data table (IMD Format) */
+.explorer-table {
+    font-size: 0.8rem;
+    font-family: Arial, sans-serif;
+    color: #000;
+    background: #fff;
+    border-collapse: collapse;
+}
+.explorer-table th,
+.explorer-table td {
+    border: 1px dotted #CC0066 !important;
+}
+.explorer-table th {
+    font-weight: bold;
+    text-align: center;
+    background: #fff !important;
+    color: #000 !important;
+    white-space: nowrap;
+    font-size: 0.75rem;
+}
+.explorer-table td {
+    text-align: center;
+    padding: 4px 6px !important;
+}
+.explorer-table tbody tr:hover {
+    background: #fff !important;
+}
+.explorer-table .has-value {
+    color: #000 !important;
+}
+.explorer-table .no-value span {
+    opacity: 0;
+}
+
+/* ================================================================
+   FORMS & INPUTS
+   ================================================================ */
+.form-control, .form-select {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-dark);
+    color: var(--text-body);
+    border-radius: 3px;
+    padding: 0.4rem 0.75rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+}
+.form-label {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+.btn {
+    border-radius: 3px;
+    font-weight: 500;
+    padding: 0.4rem 1rem;
+}
+.btn-primary {
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    color: #FFFFFF;
+}
+.btn-primary:hover {
+    background: #003865;
+}
+.btn-outline-success {
+    color: var(--success);
+    border-color: var(--success);
+}
+.btn-outline-success:hover {
+    background: var(--success);
+    color: #FFFFFF;
+}
+
+/* ================================================================
+   ALERTS
+   ================================================================ */
+.alert {
+    border-radius: 3px;
+    border-left: 4px solid transparent;
+}
+.alert-info {
+    background: #EBF3FA;
+    border-color: #B8DAFF;
+    border-left-color: var(--secondary);
+    color: #004085;
+}
+.alert-success {
+    background: #D4EDDA;
+    border-color: #C3E6CB;
+    border-left-color: var(--success);
+    color: #155724;
+}
+.alert-danger, .alert-warning {
+    background: #F8D7DA;
+    border-color: #F5C6CB;
+    border-left-color: var(--warning);
+    color: #721C24;
+}
+
+/* ================================================================
+   TEXT UTILITIES
+   ================================================================ */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+.text-primary {
+    color: var(--primary) !important;
+}
+.text-danger {
+    color: var(--warning) !important;
+}
+.text-info {
+    color: var(--secondary) !important;
+}
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+.footer {
+    background: #343A40;
+    color: #FFFFFF;
+    padding: 1.5rem 0;
+    border-top: 4px solid var(--accent-alt);
+}
+.footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+.footer a {
+    color: #FFC107;
+    text-decoration: none;
+}
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* ================================================================
+   MAIN CONTENT AREA
+   ================================================================ */
+.content {
+    padding: 1.5rem 2rem 3rem;
+}
+
+/* ================================================================
+   STATION EXPLORER — MAIN CONTENT
+   ================================================================ */
+
+/* Parameter pills */
+.explorer-pill {
+    background: #E9ECEF;
+    color: var(--text-body);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: 500;
+}
+.explorer-pill:hover {
+    background: #DEE2E6;
+}
+.explorer-pill.active {
+    background: var(--primary);
+    color: #FFFFFF;
+    border-color: var(--primary);
+}
+
+/* Data table accordion headers */
+.explorer-param-section {
+    border-bottom: 1px solid var(--border);
+}
+.explorer-param-header {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    background: #F8F9FA;
+}
+.explorer-param-header:hover {
+    background: #E9ECEF;
+}
+.explorer-param-header.highlight {
+    background: #EBF3FA;
+    border-left: 3px solid var(--primary);
+}
+.explorer-table-chevron {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+.explorer-table-chevron.rotated {
+    transform: rotate(90deg);
+}
+
+/* ================================================================
+   BADGE OVERRIDES
+   ================================================================ */
+.badge {
+    border-radius: 2px;
+    padding: 4px 8px;
+    font-weight: 600;
+}
+.bg-info { background-color: var(--secondary) !important; }
+.bg-dark { background-color: var(--text-body) !important; }
+.bg-primary { background-color: var(--primary) !important; }
+
+/* ================================================================
+   DASHBOARD — Climate Records table overrides
+   ================================================================ */
+.card .bg-dark {
+    background-color: var(--primary) !important;
+}
+.card .bg-light,
+.card .table .bg-light {
+    background-color: #F8F9FA !important;
+    color: var(--text-body);
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 768px) {
+    .navbar-brand { font-size: 1.1rem; }
+    .navbar-logo { height: 32px; }
+    .content { padding: 1rem; }
+    .stat-card h2 { font-size: 1.8rem; }
+}

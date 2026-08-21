@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Monthly Extreme Files{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-word"></i> Monthly Extreme Files</h2>
+</div>
+
+<div class="alert alert-info shadow-sm mb-4">
+    <i class="fas fa-info-circle"></i> 
+    Download fully updated Extreme Weather Word documents for any month. These generated files contain all historical data combined from your master database and newly imported records across all stations for the selected month.
+</div>
+
+<div class="row">
+    {% for item in month_stats %}
+    <div class="col-md-3 mb-4">
+        <div class="card shadow-sm h-100 border-primary">
+            <div class="card-body text-center">
+                <h4 class="card-title mb-3">{{ item.month_name }}</h4>
+                <p class="text-muted small mb-4">
+                    <i class="fas fa-database"></i> {{ '{:,}'.format(item.record_count) }} Extreme Records
+                </p>
+                <form action="{{ url_for('extreme_weather.export_word') }}" method="POST">
+                    <input type="hidden" name="month" value="{{ item.month }}">
+                    <!-- Send empty start and end year to default to all time -->
+                    <input type="hidden" name="start_year" value="">
+                    <input type="hidden" name="end_year" value="">
+                    <button type="submit" class="btn btn-primary w-100 {% if item.record_count == 0 %}disabled{% endif %}">
+                        <i class="fas fa-file-word"></i> Download {{ item.month_name }} Data
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+        <h5>No months available</h5>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

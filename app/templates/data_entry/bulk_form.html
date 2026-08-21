@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Bulk Data Entry{% endblock %}
+{% block content %}
+<h2><i class="fas fa-keyboard"></i> Data Entry</h2>
+
+<ul class="nav nav-pills nav-fill mt-3 mb-4 bg-white border rounded p-1 shadow-sm">
+  <li class="nav-item">
+    <a class="nav-link fw-bold" style="background-color: #e2e8f0; color: #475569 !important;" href="{{ url_for('data_entry.index') }}"><i class="fas fa-calendar-day"></i> Daily Data Entry</a>
+  </li>
+  <li class="nav-item ms-2">
+    <a class="nav-link active fw-bold" href="{{ url_for('data_entry.bulk_entry') }}"><i class="fas fa-calendar-alt"></i> Monthly Entry (Bulk Entry)</a>
+  </li>
+</ul>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-th"></i> Monthly Data Grid</h5>
+    </div>
+    <div class="card-body">
+        <form id="bulkForm">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label text-muted">Station *</label>
+                    <select class="form-select" name="station_id" id="bulk_station_id" required>
+                        <option value="">Select Station</option>
+                        {% for station in stations %}
+                        <option value="{{ station.station_id }}">{{ station.station_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted">Year *</label>
+                    <input type="number" class="form-control" name="obs_year" id="bulk_obs_year" min="1800" max="2100" value="{{ years[0] }}" placeholder="e.g. 2026" required>
+                </div>
+            </div>
+            
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start align-middle">Parameter</th>
+                            {% for m, m_name in [(1,'JAN'), (2,'FEB'), (3,'MAR'), (4,'APR'), (5,'MAY'), (6,'JUN'), (7,'JUL'), (8,'AUG'), (9,'SEP'), (10,'OCT'), (11,'NOV'), (12,'DEC')] %}
+                            <th class="text-center pb-2">
+                                {{ m_name }}
+                                <br>
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-1 py-0 px-2" onclick="clearColumn({{ m }})" title="Clear Column Data"><i class="fas fa-trash-alt"></i></button>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for param in parameters %}
+                        <tr>
+                            <td class="align-middle text-start">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>{{ param.parameter_name }}</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 ms-2" onclick="clearRow({{ param.parameter_id }})" title="Clear Row Data"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </td>
+                            {% for i in range(1, 13) %}
+                            <td>
+                                <input type="text" class="form-control text-center" name="month_{{ i }}_{{ param.parameter_id }}" placeholder="-">
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <small class="text-muted"><i class="fas fa-info-circle"></i> Leave blank to skip. Enter 'TR' for trace, '***' for missing.</small>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary me-2" onclick="document.getElementById('bulkForm').reset()"><i class="fas fa-undo"></i> Clear</button>
+                <button type="submit" class="btn btn-primary px-5" id="bulkSubmitBtn">
+                    <i class="fas fa-save"></i> Save All
+                </button>
+            </div>
+            <div id="bulkMessage" class="mt-3"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+// --- Tab-through on Enter key (vertical: same month, next parameter) ---
+document.getElementById('bulkForm').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const target = e.target;
+        if (target.tagName === 'INPUT' && target.type === 'text' && target.name && target.name.startsWith('month_')) {
+            e.preventDefault();
+
+            // Parse current month and paramId from name like "month_3_7"
+            const parts = target.name.split('_');  // ["month", "3", "7"]
+            const currentMonth = parts[1];
+
+            // Get all inputs in the same column (same month), in DOM order
+            const columnInputs = Array.from(
+                document.querySelectorAll(`#bulkForm input[type="text"][name^="month_${currentMonth}_"]:not([disabled])`)
+            );
+            const idx = columnInputs.indexOf(target);
+            if (idx !== -1 && idx < columnInputs.length - 1) {
+                columnInputs[idx + 1].focus();
+                columnInputs[idx + 1].select();
+            }
+        }
+    }
+});
+
+// Auto-fetch data when inputs change
+const stationSelect = document.getElementById('bulk_station_id');
+const yearSelect = document.getElementById('bulk_obs_year');
+const parameterIds = [
+    {% for param in parameters %}
+    {{ param.parameter_id }},
+    {% endfor %}
+];
+
+function fetchExistingData() {
+    const stationId = stationSelect.value;
+    const year = yearSelect.value;
+    
+    if (stationId && year) {
+        // Clear current values and show loading state
+        parameterIds.forEach(paramId => {
+            for(let i=1; i<=12; i++) {
+                const input = document.querySelector(`input[name="month_${i}_${paramId}"]`);
+                if(input) {
+                    input.value = '';
+                    input.placeholder = 'Loading...';
+                    input.disabled = true;
+                }
+            }
+        });
+        
+        fetch(`{{ url_for("data_entry.get_bulk_data") }}?station_id=${stationId}&obs_year=${year}`)
+        .then(r => r.json())
+        .then(data => {
+            parameterIds.forEach(paramId => {
+                for(let i=1; i<=12; i++) {
+                    const input = document.querySelector(`input[name="month_${i}_${paramId}"]`);
+                    if(input) {
+                        input.placeholder = '-';
+                        input.disabled = false;
+                        if(data.success && data.data && data.data[paramId] && data.data[paramId][i] !== undefined) {
+                            input.value = data.data[paramId][i];
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => {
+            parameterIds.forEach(paramId => {
+                for(let i=1; i<=12; i++) {
+                    const input = document.querySelector(`input[name="month_${i}_${paramId}"]`);
+                    if(input) {
+                        input.placeholder = '-';
+                        input.disabled = false;
+                    }
+                }
+            });
+        });
+    }
+}
+
+stationSelect.addEventListener('change', fetchExistingData);
+yearSelect.addEventListener('change', fetchExistingData);
+
+function clearColumn(month) {
+    if(confirm('Are you sure you want to clear all data for this column (month)?\nRemember to click "Save All" afterwards to delete it from the database.')) {
+        parameterIds.forEach(paramId => {
+            const input = document.querySelector(`input[name="month_${month}_${paramId}"]`);
+            if(input) input.value = '';
+        });
+    }
+}
+
+function clearRow(paramId) {
+    if(confirm('Are you sure you want to clear all data for this row (parameter)?\nRemember to click "Save All" afterwards to delete it from the database.')) {
+        for(let i=1; i<=12; i++) {
+            const input = document.querySelector(`input[name="month_${i}_${paramId}"]`);
+            if(input) input.value = '';
+        }
+    }
+}
+
+document.getElementById('bulkForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if(!confirm("Are you sure you want to proceed and store this data in the master file?")) {
+        return;
+    }
+    
+    const btn = document.getElementById('bulkSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("data_entry.bulk_submit") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save All';
+        const msgDiv = document.getElementById('bulkMessage');
+        if(data.success) {
+            msgDiv.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
+            setTimeout(() => { msgDiv.innerHTML = ''; }, 5000);
+            
+            // Do NOT clear values on success, keep them populated so they can see their updates
+        } else {
+            msgDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ${data.message}</div>`;
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save All';
+        document.getElementById('bulkMessage').innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> Error submitting data</div>`;
+    });
+});
+</script>
+{% endblock %}

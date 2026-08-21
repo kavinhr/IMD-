@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="text-muted">Active Stations</h6>
+                <h2>{{ total_stations }}</h2>
+                <small><i class="fas fa-map-marker-alt"></i> Meteorological Stations</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="text-muted">Parameters</h6>
+                <h2>{{ total_parameters }}</h2>
+                <small><i class="fas fa-thermometer-half"></i> Weather Parameters</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h6 class="text-muted">Total Observations</h6>
+                <h2>{{ '{:,}'.format(total_observations) }}</h2>
+                <small><i class="fas fa-database"></i> Records in Database</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- All-Time Climate Records -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-trophy" style="color:#e6a817;"></i> All-Time Climate Records</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th class="text-primary">Lowest Recorded</th>
+                                <th class="text-danger">Highest Recorded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in climate_records %}
+                            <tr>
+                                <td class="align-middle fw-bold bg-light">{{ record.parameter.parameter_name }}</td>
+                                
+                                <td class="align-middle">
+                                    {% if record.lowest %}
+                                        <div class="fw-bold fs-5 text-primary">
+                                            {{ record.lowest.obs_value | format_number(record.parameter.decimal_places) }} {{ record.parameter.unit }}
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="fas fa-map-marker-alt"></i> {{ record.lowest.station.station_name }}<br>
+                                            <i class="fas fa-calendar-alt"></i> {{ record.lowest.obs_month | month_name }} {{ record.lowest.obs_year }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">No Data</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="align-middle">
+                                    {% if record.highest %}
+                                        <div class="fw-bold fs-5 text-danger">
+                                            {{ record.highest.obs_value | format_number(record.parameter.decimal_places) }} {{ record.parameter.unit }}
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="fas fa-map-marker-alt"></i> {{ record.highest.station.station_name }}<br>
+                                            <i class="fas fa-calendar-alt"></i> {{ record.highest.obs_month | month_name }} {{ record.highest.obs_year }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">No Data</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history"></i> Recent Observations</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Station</th>
+                                <th>Parameter</th>
+                                <th>Year</th>
+                                <th>Month</th>
+                                <th>Value</th>
+                                <th>Entered By</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for obs in recent_observations %}
+                            <tr>
+                                <td>{{ obs.station.station_name }}</td>
+                                <td>{{ obs.parameter.parameter_name }}</td>
+                                <td>{{ obs.obs_year }}</td>
+                                <td>{{ obs.obs_month | month_name }}</td>
+                                <td>
+                                    {% if obs.obs_value %}
+                                        {{ obs.obs_value | format_number(obs.parameter.decimal_places) }} 
+                                        {{ obs.parameter.unit }}
+                                    {% else %}
+                                        {{ obs.value_text }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ obs.entered_by_user.full_name if obs.entered_by_user else 'System' }}</td>
+                                <td>{{ obs.entered_at | format_date('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No recent observations</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Climate Data Management{% endblock %} - RMC Chennai</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard.index') }}">
+                <img src="{{ url_for('static', filename='images/imd_logo.png') }}" alt="IMD Logo" class="navbar-logo me-2">
+                Climate Data Management, RMC Chennai
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                           data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ current_user.full_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard.profile') }}">
+                                <i class="fas fa-user"></i> Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                <i class="fas fa-key"></i> Change Password
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            {% if current_user.is_authenticated %}
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item mt-2 mb-1 text-muted small fw-bold px-3">VIEWING</li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                <i class="fas fa-tachometer-alt fa-fw me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('station_overview') %}active{% endif %}" href="{{ url_for('station_overview.index') }}">
+                                <i class="fas fa-chart-bar fa-fw me-2"></i> Station Overview
+                            </a>
+                        </li>
+
+                        {% if current_user.has_permission('write') %}
+                        <li class="nav-item mt-3 mb-1 text-muted small fw-bold px-3">DATA INPUT</li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('data_entry.index') }}">
+                                <i class="fas fa-keyboard fa-fw me-2"></i> Data Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('daily_archive') %}active{% endif %}" href="{{ url_for('daily_archive.index') }}">
+                                <i class="fas fa-calendar-day fa-fw me-2"></i> Daily Archive
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('excel_archive') %}active{% endif %}" href="{{ url_for('excel_archive.index') }}">
+                                <i class="fas fa-file-excel fa-fw me-2"></i> Monthly Archive
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('import_extreme') %}active{% endif %}" href="{{ url_for('import_extreme.index') }}">
+                                <i class="fas fa-file-import fa-fw me-2"></i> Import Extreme
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <li class="nav-item mt-3 mb-1 text-muted small fw-bold px-3">REPORTS & EXPORTS</li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('reports.index') }}">
+                                <i class="fas fa-file-alt fa-fw me-2"></i> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('extreme_weather') %}active{% endif %}" href="{{ url_for('extreme_weather.index') }}">
+                                <i class="fas fa-cloud-showers-heavy fa-fw me-2"></i> Extreme Weather
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('station_files') %}active{% endif %}" href="{{ url_for('station_files.index') }}">
+                                <i class="fas fa-file-download fa-fw me-2"></i> Station Files
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('daily_files') %}active{% endif %}" href="{{ url_for('daily_files.index') }}">
+                                <i class="fas fa-file-csv fa-fw me-2"></i> Daily Files
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('extreme_files') %}active{% endif %}" href="{{ url_for('extreme_files.index') }}">
+                                <i class="fas fa-file-word fa-fw me-2"></i> Extreme Files
+                            </a>
+                        </li>
+                        {% if current_user.has_permission('all') %}
+                        <li class="nav-item">
+                            <hr>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.index') }}">
+                                <i class="fas fa-cog"></i> Admin Panel
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+            {% endif %}
+
+            <!-- Main Content -->
+            <main class="{% if current_user.is_authenticated %}col-md-10 ms-sm-auto{% else %}col-12{% endif %} content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-1">&copy; {{ now.year }} Indian Meteorological Department, Chennai</p>
+            <p class="mb-0">
+                <small>Climate Data Management, RMC Chennai v3.17 | 
+                <a href="https://www.bing.com/ck/a?!&&p=707b5288d84546982882714789a6cfa15fafb6d38e840499747d33ffde7f7a93JmltdHM9MTc4MjY5MTIwMA&ptn=3&ver=2&hsh=4&fclid=26f5b634-2348-6ae9-36b2-a3b3222a6bf3&psq=rmc+chennai&u=a1aHR0cHM6Ly9tYXVzYW0uaW1kLmdvdi5pbi9jaGVubmFpL21jZGF0YS9jb250YWN0X2RldGFpbHMucGRm" target="_blank" rel="noopener noreferrer">Support</a></small>
+            </p>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

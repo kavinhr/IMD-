@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Extreme Weather Report{% endblock %}
+
+{% block content %}
+<style>
+    .extremeTable {
+        border: 2px solid #000 !important;
+        color: #000 !important;
+    }
+    .extremeTable th, .extremeTable td {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+    }
+</style>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Extreme Weather Events Report</h2>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('extreme_weather.index') }}" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Month</label>
+                <select name="month" class="form-select" required>
+                    <option value="">Select Month...</option>
+                    {% set m_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] %}
+                    {% for i in range(1, 13) %}
+                    <option value="{{ i }}" {% if selected_month == i %}selected{% endif %}>{{ m_names[i-1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">From Year <small class="text-muted">(Optional)</small></label>
+                <input type="number" name="start_year" class="form-control" value="{{ start_year or '' }}" min="1900" max="2100" placeholder="e.g. 1980">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Year <small class="text-muted">(Optional)</small></label>
+                <input type="number" name="end_year" class="form-control" value="{{ end_year or '' }}" min="1900" max="2100" placeholder="e.g. 2024">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Generate</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if selected_month and reports_by_station %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <h5 class="mb-0">Report for {{ m_names[selected_month - 1] }}</h5>
+        <div>
+            <form method="POST" action="{{ url_for('extreme_weather.export_pdf') }}" class="d-inline">
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="start_year" value="{{ start_year or '' }}">
+                <input type="hidden" name="end_year" value="{{ end_year or '' }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i> Export PDF</button>
+            </form>
+            <form method="POST" action="{{ url_for('extreme_weather.export_word') }}" class="d-inline">
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="start_year" value="{{ start_year or '' }}">
+                <input type="hidden" name="end_year" value="{{ end_year or '' }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-word"></i> Export Word</button>
+            </form>
+        </div>
+    </div>
+    <div class="card-body">
+        
+        {% for station_data in reports_by_station %}
+        {% set station = station_data.station %}
+        {% set report_data = station_data.report_data %}
+        {% set all_time_record = station_data.all_time_record %}
+        
+        <div class="report-content mb-5 pb-4" style="font-family: Arial, sans-serif;">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-decoration-underline">{{ loop.index }}. {{ station.station_name | upper }}</h3>
+                <h5 class="fw-bold">EXTREME WEATHER EVENTS IN THE MONTH OF {{ m_names[selected_month - 1] | upper }}</h5>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle text-center extremeTable border-dark">
+                    <thead class="table-dark">
+                        <tr>
+                            <th rowspan="2" class="align-middle">Year</th>
+                            <th colspan="2">Temperature(°C)</th>
+                            <th colspan="2">Rainfall (mm)</th>
+                        </tr>
+                        <tr>
+                            <th>Highest<br>Maximum(Date)</th>
+                            <th>Lowest<br>Minimum(Date)</th>
+                            <th>24 Hours Highest<br>(Date)</th>
+                            <th>Monthly Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in report_data %}
+                        <tr>
+                            <td class="fw-bold">{{ row.year }}</td>
+                            
+                            {% macro render_cell(obs) %}
+                                {% if obs and obs.obs_value is not none %}
+                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <span>{{ '%0.1f' | format(obs.obs_value|float) }}</span>
+                                        {% if obs.date_of_extreme %}
+                                            <span class="text-muted date-display">({{ obs.date_of_extreme }})</span>
+                                        {% else %}
+                                            <span class="text-muted date-display">(-)</span>
+                                        {% endif %}
+                                        
+                                        <!-- Editable Input -->
+                                        {% if current_user.has_permission('write') %}
+                                            <div class="edit-date-container d-none input-group input-group-sm" style="width: 100px;">
+                                                <input type="text" class="form-control date-input" value="{{ obs.date_of_extreme or '' }}" data-obs-id="{{ obs.observation_id if obs.__class__.__name__ == 'Observation' else obs.id }}" data-obs-type="{{ obs.__class__.__name__ }}">
+                                                <button class="btn btn-success btn-save-date"><i class="fas fa-check"></i></button>
+                                                <button class="btn btn-danger btn-cancel-date"><i class="fas fa-times"></i></button>
+                                            </div>
+                                            <button class="btn btn-link btn-sm p-0 ms-1 btn-edit-date text-secondary" title="Edit Date"><i class="fas fa-edit"></i></button>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            {% endmacro %}
+                            
+                            <td>{{ render_cell(row.tmax_obs) }}</td>
+                            <td>{{ render_cell(row.tmin_obs) }}</td>
+                            <td>{{ render_cell(row.rf24_obs) }}</td>
+                            
+                            <td>
+                                {% if row.rfm_obs and row.rfm_obs.obs_value is not none %}
+                                    {{ '%0.1f' | format(row.rfm_obs.obs_value|float) }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5">No data available for this station in the selected year range.</td>
+                        </tr>
+                        {% endfor %}
+                        
+                        <!-- ALL TIME RECORD ROW -->
+                        <tr class="fw-bold" style="background-color: #f8f9fa;">
+                            <td>ALL TIME<br>RECORD</td>
+                            
+                            {% macro render_atr_cell(obs) %}
+                                {% if obs and obs.obs_value is not none %}
+                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <span>{{ '%0.1f' | format(obs.obs_value|float) }}</span>
+                                        {% set clean_date = obs.date_of_extreme|trim if obs.date_of_extreme and obs.date_of_extreme|trim not in ['-', ',', 'None', ''] else None %}
+                                        {% if clean_date %}
+                                            <span class="text-muted date-display atr-date">({{ clean_date }}, {{ obs.obs_year }})</span>
+                                        {% else %}
+                                            <span class="text-muted date-display atr-date">({{ obs.obs_year }})</span>
+                                        {% endif %}
+                                        
+                                        <!-- Editable Input -->
+                                        {% if current_user.has_permission('write') %}
+                                            <div class="edit-date-container d-none input-group input-group-sm" style="width: 100px;">
+                                                <input type="text" class="form-control date-input" value="{{ clean_date or '' }}" data-obs-id="{{ obs.observation_id if obs.__class__.__name__ == 'Observation' else obs.id }}" data-obs-type="{{ obs.__class__.__name__ }}" data-year="{{ obs.obs_year }}">
+                                                <button class="btn btn-success btn-save-date"><i class="fas fa-check"></i></button>
+                                                <button class="btn btn-danger btn-cancel-date"><i class="fas fa-times"></i></button>
+                                            </div>
+                                            <button class="btn btn-link btn-sm p-0 ms-1 btn-edit-date text-secondary" title="Edit Date"><i class="fas fa-edit"></i></button>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            {% endmacro %}
+                            
+                            <td>{{ render_atr_cell(all_time_record.tmax) }}</td>
+                            <td>{{ render_atr_cell(all_time_record.tmin) }}</td>
+                            <td>{{ render_atr_cell(all_time_record.rf24) }}</td>
+                            
+                            <td>
+                                {% set mrf = all_time_record.rfm %}
+                                {% if mrf and mrf.obs_value is not none %}
+                                    {{ '%0.1f' | format(mrf.obs_value|float) }} 
+                                    {% if mrf.obs_year %}
+                                        <span class="text-muted">({{ mrf.obs_year }})</span>
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if current_user.has_permission('write') %}
+    <div id="saveChangesContainer" class="d-none sticky-bottom bg-white p-3 border-top shadow d-flex justify-content-end gap-3 align-items-center" style="z-index: 1000; bottom: 0;">
+        <span class="fw-bold text-primary" id="pendingChangesText">0 pending changes</span>
+        <div>
+            <button class="btn btn-outline-secondary me-2" id="btnCancelAll">Cancel All</button>
+            <button class="btn btn-primary px-4" id="btnSaveAll"><i class="fas fa-save me-1"></i> Save Changes</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let pendingChanges = {};
+
+    const updatePendingUI = () => {
+        const count = Object.keys(pendingChanges).length;
+        const container = document.getElementById('saveChangesContainer');
+        if (!container) return;
+        
+        if (count > 0) {
+            container.classList.remove('d-none');
+            document.getElementById('pendingChangesText').textContent = `${count} pending change${count > 1 ? 's' : ''}`;
+        } else {
+            container.classList.add('d-none');
+        }
+    };
+
+    // Handle inline edit of dates
+    const editButtons = document.querySelectorAll('.btn-edit-date');
+    const cancelButtons = document.querySelectorAll('.btn-cancel-date');
+    const saveButtons = document.querySelectorAll('.btn-save-date');
+
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const container = this.closest('div.d-flex');
+            container.querySelector('.date-display').classList.add('d-none');
+            this.classList.add('d-none');
+            container.querySelector('.edit-date-container').classList.remove('d-none');
+            container.querySelector('.date-input').focus();
+        });
+    });
+
+    cancelButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const container = this.closest('div.d-flex');
+            container.querySelector('.date-display').classList.remove('d-none');
+            container.querySelector('.btn-edit-date').classList.remove('d-none');
+            container.querySelector('.edit-date-container').classList.add('d-none');
+            
+            // Revert input value to what it was visually
+            const input = container.querySelector('.date-input');
+            input.value = input.dataset.originalValue || input.defaultValue;
+        });
+    });
+
+    saveButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const container = this.closest('div.d-flex');
+            const input = container.querySelector('.date-input');
+            const obsId = input.dataset.obsId;
+            const obsType = input.dataset.obsType;
+            const dateVal = input.value;
+
+            // Store original value if not already stored
+            if (input.dataset.originalValue === undefined) {
+                input.dataset.originalValue = input.defaultValue;
+            }
+
+            // Queue change
+            const key = `${obsType}_${obsId}`;
+            if (dateVal !== input.dataset.originalValue) {
+                pendingChanges[key] = {
+                    observation_id: obsId,
+                    obs_type: obsType,
+                    date_val: dateVal
+                };
+            } else {
+                delete pendingChanges[key];
+            }
+
+            // Update UI locally
+            const displaySpan = container.querySelector('.date-display');
+            const isAtr = displaySpan.classList.contains('atr-date');
+            const yearStr = isAtr ? `, ${input.dataset.year}` : '';
+            if(dateVal) {
+                displaySpan.textContent = `(${dateVal}${yearStr})`;
+            } else {
+                displaySpan.textContent = `(-${yearStr})`;
+            }
+            
+            displaySpan.classList.remove('d-none');
+            if (pendingChanges[key]) {
+                displaySpan.classList.add('text-warning', 'fw-bold');
+            } else {
+                displaySpan.classList.remove('text-warning', 'fw-bold');
+            }
+            
+            container.querySelector('.btn-edit-date').classList.remove('d-none');
+            container.querySelector('.edit-date-container').classList.add('d-none');
+            
+            updatePendingUI();
+        });
+    });
+
+    // Global Cancel
+    const btnCancelAll = document.getElementById('btnCancelAll');
+    if (btnCancelAll) {
+        btnCancelAll.addEventListener('click', function() {
+            if(confirm('Are you sure you want to cancel all unsaved changes?')) {
+                location.reload();
+            }
+        });
+    }
+    
+    // Global Save
+    const btnSaveAll = document.getElementById('btnSaveAll');
+    if (btnSaveAll) {
+        btnSaveAll.addEventListener('click', function() {
+            if(confirm('Are you sure you want to save all pending changes to the database?')) {
+                const changesArray = Object.values(pendingChanges);
+                
+                fetch('{{ url_for("extreme_weather.update_extreme_dates_batch") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(changesArray)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        alert('Changes saved successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error saving changes: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred while saving.');
+                    console.error(error);
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Daily Station Master Files{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-csv"></i> Daily Station Master Files</h2>
+</div>
+
+<div class="alert alert-info shadow-sm mb-4">
+    <i class="fas fa-info-circle"></i> 
+    Download fully updated Daily Excel files for any station. These generated files contain all historical daily data combined with any new manual entries from the system. They are grouped by month and formatted as IMD Station Statements.
+</div>
+
+<div class="row">
+    {% for item in station_stats %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">{{ item.station.station_name }}</h5>
+                    <span class="badge bg-primary">{{ item.station.station_code }}</span>
+                </div>
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-database"></i> {{ '{:,}'.format(item.record_count) }} Daily Records
+                </p>
+                <a href="{{ url_for('daily_files.download', station_id=item.station.station_id) }}" 
+                   class="btn btn-outline-success w-100 {% if item.record_count == 0 %}disabled{% endif %}">
+                    <i class="fas fa-file-excel"></i> Download Daily Master
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="fas fa-map-marker-slash fa-3x mb-3"></i>
+        <h5>No active stations found</h5>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
